@@ -103,10 +103,12 @@ TreadMill should work out of the box with a valid Sneakers configuration. For Ac
 
 #### Rails 4.1
 
-TreadMill requires ActiveJob.  TreadMill currently depends on ActiveJob, but RubyGems carries a relatively early version of ActiveJob, so your best bet is installing it from [this](http://github.com/rails/activejob) repository, specifically the `archive` branch.
+**Update:** Big thanks to Seuros for trying to get an official 4.1 release of `ActiveJob`.  Unfortunately the [Rails team would rather us upgrade to Rails 4.2.](https://github.com/rails/rails/pull/16733) which is understandable considering they've stopped maintaining 4.1 less security fixes.  The repository will hopefully stay in place for anyone wanting to use the preliminary `ActiveJob` API in Rails 4.1.
+
+TreadMill requires ActiveJob.  TreadMill currently depends on ActiveJob, but RubyGems ~~carries a relatively early version of ActiveJob~~ [has the latest ActiveJob tagged with pre of `beta1` and has Rails 4.2 as a dependency](http://rubygems.org/gems/activejob/versions/4.2.0.beta1), so your best bet is installing it from [this](http://github.com/rails/activejob) repository, specifically the `archive` branch.
 
 If you want to use ActionMailer::DeliverLater, the pre-merge Github repository for the ActionMailer::DeliverLater feature can be found [here](http://github.com/seuros/actionmailer-deliver_later).  This repository may at some point in the future be updated to work with Rails 4.1.  Currently, however, there is a bug in how it overrides ActionMailer's `missing_method` functionality.  I have forked this branch for use specifically with Rails 4.1 and applied necessary patches (see the repos readme for details) to get it working.  Instructions on usage and installation can be found [here](http://github.com/Protobit/actionmailer-deliver_later).
 
 #### Rails <4.1
 
-At this time, I have not tested TreadMill, ActiveJob, or ActionMailer::DeliverLater on any configuration below Rails 4.1.5.  If you wish to, and you find any issues, please feel free to fix them and roll a Pull Request.
+Versions before Rail 4.1 won't be actively supported.
