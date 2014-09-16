@@ -13,10 +13,7 @@ module TreadMill
     initializer "tread_mill.set_configs" do |app|
       options = app.config.tread_mill
       options.queues ||= []
-
-      ActiveSupport.on_load(:tread_mill) do
-        options.each { |k,v| send("#{k}=", v) }
-      end
+      options.each { |k,v| TreadMill.send("#{k}=", v.flatten) }
 
       ActiveJob::Base.queue_adapter = :sneakers
     end
