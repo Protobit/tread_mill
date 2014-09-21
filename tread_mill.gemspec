@@ -17,7 +17,7 @@ Gem::Specification.new do |s|
   s.files = Dir["{app,config,db,lib}/**/*", "LICENSE", "Rakefile", "README.md"]
   s.test_files = Dir["test/**/*"]
 
-  s.add_dependency "rails", "~> 4.1.5"
+  s.add_dependency "rails", ">= 4.1"
   s.add_dependency "sneakers", "~> 0.1.1.pre"
 
   # This should go away with Rails 4.2.0.beta1
