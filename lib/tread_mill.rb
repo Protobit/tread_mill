@@ -3,22 +3,9 @@
 # Load sneakers...
 require 'sneakers'
 require 'sneakers/runner'
-require 'active_job'
 
 require 'tread_mill/fork_callbacks'
 require 'tread_mill/queue_listener'
-
-# ActiveJob currently sets the queue_name by concatenating with a '_'.
-module ActiveJob
-  class Base
-    def self.queue_as(part_name, base_name = nil)
-      # Allow for classes to override global base_name
-      base_name ||= queue_base_name
-
-      self.queue_name = "#{base_name}#{part_name}"
-    end
-  end
-end
 
 module TreadMill
   include ActiveSupport::Configurable
