@@ -3,7 +3,7 @@
 # Load sneakers...
 require 'sneakers'
 require 'sneakers/runner'
-require 'activejob'
+require 'active_job'
 
 require 'tread_mill/fork_callbacks'
 require 'tread_mill/queue_listener'

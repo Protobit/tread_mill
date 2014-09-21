@@ -20,8 +20,5 @@ Gem::Specification.new do |s|
   s.add_dependency "rails", ">= 4.1"
   s.add_dependency "sneakers", "~> 0.1.1.pre"
 
-  # This should go away with Rails 4.2.0.beta1
-  s.add_dependency "activejob"
-
   s.add_development_dependency "sqlite3"
 end
