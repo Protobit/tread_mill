@@ -1,19 +1,17 @@
 # TreadMill
 
-TreadMill Rails plugin for background workers.  This gem is designed to integrate into an existing Rails application and provide immediate RabbitMQ integration using the Sneakers worker gem and Rails 4.1+ ActiveJob.
-
-**NOTE:** ActiveJob from RubyGems is a relatively old version.  For my production application, until we bump to Rails 4.2, we're using HEAD on the rails/ActiveJob *archive* branch.
+TreadMill Rails plugin for background workers.  This gem is designed to integrate into an existing Rails application and provide immediate RabbitMQ integration using the Sneakers worker gem and Rails 4.2 ActiveJob.
 
 **As of this writing, this gem has not been published, but it can be accessed via bundler using git.**
 
-**Choose your ref HEAD wisely.**
+**Use the [0.0.1](/Protobit/tread_mill/wiki/0.0.1) tag for Rails 4.1  and `0.0.2` tag for Rails 4.2+**
 
 ## Installation
 
 Add this line to your applications's Gemfile:
 
 ```
-gem 'tread_mill', git: 'https://github.com/Protobit/tread_mill'
+gem 'tread_mill', git: 'https://github.com/Protobit/tread_mill', tag: '0.0.2'
 ```
 
 And then execute:
@@ -52,13 +50,35 @@ rake tread_mill:run
 
 ### Example workers:
 
+
+Initialize ActiveJob:
+
+```Ruby
+# config/initializers/active_job.rb
+
+# Set your prefix:
+
+ActiveJob::Base.queue_name_prefix = 'amqp.myapplication'
+
+# queue_name_prefix is prepended with an underscore ('_') for whatever reason.
+# If, like our dev team, you use the AMQP style queue names separated by
+# '.' then set the queue_name_prefix to 'nil' and use the full queue name in
+# ActiveJob::Base#queue_as(queue).
+
+# ActiveJob::Base.queue_adapter is handled by TreadMill automatically.
+# ActiveJob::Base.queue_adapter = :sneakers 
+```
+
 Assuming you are using the ActiveJob::Base worker class:
 
 ```Ruby
 # app/workers/my_worker.rb
 
 class Workers::MyWorker < ActiveJob::Base
-  queue_as :my_queue
+  queue_as :my_queue # queue used will be 'amqp.myapplication_my_queue'
+
+  # If you use decimals or some other non-underscore join:
+  # queue_as 'amqp.myapplication.my_queue'
 
   def perform(user)
     user.do_work
@@ -70,17 +90,6 @@ class Workers::MyWorker < ActiveJob::Base
     end
   end
 end
-```
-
-And you've set your base name:
-
-```Ruby
-# config/initializers/active_job.rb
-
-ActiveJob::Base.queue_base_name = 'amqp.myapplication.'
-
-# ActiveJob::Base.queue_adapter is handled by TreadMill automatically.
-# ActiveJob::Base.queue_adapter = :sneakers 
 ```
 
 Then you are set to use your workers wherever you want:
@@ -99,16 +108,8 @@ end
 
 #### Rail 4.2
 
-TreadMill should work out of the box with a valid Sneakers configuration. For ActionMailer::DeliverLater integration, all you need to do is include a `:mailer` queue, which should be prefixed by your selected `queue_base_name` (`config.tread_mill.queues = %(amqp.myapplication.mailers)`).
+TreadMill should work out of the box with a valid Sneakers configuration. For ActionMailer::DeliverLater integration, all you need to do is include a `:mailer` queue, which should be prefixed by your selected `queue_name_prefix` (`config.tread_mill.queues = %(amqp.myapplication.mailers)`).
 
-#### Rails 4.1
+#### Rails <=4.1
 
-**Update:** Big thanks to Seuros for trying to get an official 4.1 release of `ActiveJob`.  Unfortunately the [Rails team would rather us upgrade to Rails 4.2.](https://github.com/rails/rails/pull/16733) which is understandable considering they've stopped maintaining 4.1 less security fixes.  The repository will hopefully stay in place for anyone wanting to use the preliminary `ActiveJob` API in Rails 4.1.
-
-TreadMill requires ActiveJob.  TreadMill currently depends on ActiveJob, but RubyGems ~~carries a relatively early version of ActiveJob~~ [has the latest ActiveJob tagged with pre of `beta1` and has Rails 4.2 as a dependency](http://rubygems.org/gems/activejob/versions/4.2.0.beta1), so your best bet is installing it from [this](http://github.com/rails/activejob) repository, specifically the `archive` branch.
-
-If you want to use ActionMailer::DeliverLater, the pre-merge Github repository for the ActionMailer::DeliverLater feature can be found [here](http://github.com/seuros/actionmailer-deliver_later).  This repository may at some point in the future be updated to work with Rails 4.1.  Currently, however, there is a bug in how it overrides ActionMailer's `missing_method` functionality.  I have forked this branch for use specifically with Rails 4.1 and applied necessary patches (see the repos readme for details) to get it working.  Instructions on usage and installation can be found [here](http://github.com/Protobit/actionmailer-deliver_later).
-
-#### Rails <4.1
-
-Versions before Rail 4.1 won't be actively supported.
+Due to a pretty large set of API changes between ActiveJob's github repository pre-merge and now, it doesn't make sense to support pre-4.2 ActiveJob, especially considering the Rails team has flatly rejected supporting pre-4.2.  As a result, this gem as of version `0.0.2`, only supports `>= 4.2.0.beta1`.
