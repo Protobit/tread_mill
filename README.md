@@ -36,8 +36,25 @@ module MyApp
     # Optional: Probably best set in your sneakers configuration.
     # config.tread_mill.workers = # of workers
     # config.tread_mill.pid_path = '../path/pids/sneakers.pid'
+
+    config.active_job.queue_base_name = 'amqp.myapplication'
+
+    # config.active_job.queue_adapter is handled by TreadMill automatically.
+    # config.active_job.queue_adapter = :sneakers 
   end
 end
+```
+
+`ActiveJob::Base#queue_name_prefix` is prepended with an underscore ('_') for
+whatever reason. If, like our dev team, you use the AMQP style queue names
+separated by '.' then set the `app.config.queue_name_prefix` to `nil` and use
+the full queue name in `ActiveJob::Base#queue_as(queue)`.
+
+Additionally, for `ActionMailer::DeliverLater`, you'll need to pass in an
+optional argument to set the queue:
+
+```RUBY
+MyMailer.deliver_later(queue: 'amqp.myapplicat.mailer')
 ```
 
 ### Running your ActiveJob based workers.
@@ -50,24 +67,6 @@ rake tread_mill:run
 
 ### Example workers:
 
-
-Initialize ActiveJob:
-
-```Ruby
-# config/initializers/active_job.rb
-
-# Set your prefix:
-
-ActiveJob::Base.queue_name_prefix = 'amqp.myapplication'
-
-# queue_name_prefix is prepended with an underscore ('_') for whatever reason.
-# If, like our dev team, you use the AMQP style queue names separated by
-# '.' then set the queue_name_prefix to 'nil' and use the full queue name in
-# ActiveJob::Base#queue_as(queue).
-
-# ActiveJob::Base.queue_adapter is handled by TreadMill automatically.
-# ActiveJob::Base.queue_adapter = :sneakers 
-```
 
 Assuming you are using the ActiveJob::Base worker class:
 
