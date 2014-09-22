@@ -14,8 +14,6 @@ module TreadMill
       options = app.config.tread_mill
       options.queues ||= []
       options.each { |k,v| TreadMill.send("#{k}=", v.flatten) }
-
-      ActiveJob::Base.queue_adapter = :sneakers
     end
   end
 end

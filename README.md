@@ -29,6 +29,7 @@ module MyApp
   class Application < Rails::Application
     # Queues you wish to listen on.
     config.tread_mill.queues = %w(amqp.myapplication.my_queue amqp.myapplication.my_second_queue)
+    config.active_job.queue_adapter = :sneakers
 
     # Configure 'ActionMailer#deliver_later'
     config.tread_mill.queues << 'amqp.myapplication.mailers'
@@ -38,9 +39,6 @@ module MyApp
     # config.tread_mill.pid_path = '../path/pids/sneakers.pid'
 
     config.active_job.queue_base_name = 'amqp.myapplication'
-
-    # config.active_job.queue_adapter is handled by TreadMill automatically.
-    # config.active_job.queue_adapter = :sneakers 
   end
 end
 ```
