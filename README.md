@@ -1,10 +1,12 @@
 # TreadMill
 
-TreadMill Rails plugin for background workers.  This gem is designed to integrate into an existing Rails application and provide immediate RabbitMQ integration using the Sneakers worker gem and Rails 4.2 ActiveJob.
+TreadMill Rails plugin for background workers.  This gem is designed to integrate into an existing Rails application and provide immediate RabbitMQ integration using the Sneakers worker gem and Rails 4.2.0.beta1 ActiveJob.
 
 **As of this writing, this gem has not been published, but it can be accessed via bundler using git.**
 
-**Use the [0.0.1](/Protobit/tread_mill/wiki/0.0.1) tag for Rails 4.1  and `0.0.2` tag for Rails 4.2+**
+**Use the [0.0.1](/Protobit/tread_mill/wiki/0.0.1) tag for Rails 4.1  and `0.0.2` tag for Rails 4.2.0.beta1**
+
+**Untested with 4.2.0.beta2; please create an issue if you see any!**
 
 ## Installation
 
@@ -36,24 +38,33 @@ module MyApp
 
     # Optional: Probably best set in your sneakers configuration.
     # config.tread_mill.workers = # of workers
-    # config.tread_mill.pid_path = '../path/pids/sneakers.pid'
 
     config.active_job.queue_base_name = 'amqp.myapplication'
   end
 end
 ```
 
+**Note: I've submitted a PR to the Rails team to make the prefix configurable.  [Rails PR #17039 for more details.](See https://github.com/rails/rails/pull/17039)**
+
 `ActiveJob::Base#queue_name_prefix` is prepended with an underscore ('_') for
 whatever reason. If, like our dev team, you use the AMQP style queue names
 separated by '.' then set the `app.config.queue_name_prefix` to `nil` and use
 the full queue name in `ActiveJob::Base#queue_as(queue)`.
 
-Additionally, for `ActionMailer::DeliverLater`, you'll need to pass in an
-optional argument to set the queue:
+Alternately, use `self.queue_name = 'full.queue.name'`, but this won't work in
+Rails 4.2.0.beta2, which has some pretty hefty re-writes to the ActiveJob API.
+
+Additionally, for `ActionMailer::DeliverLater`, this is unsupported in Rails
+4.2.0.beta1.
+
+If using Rails 4.2.0.beta2, you can try to pass in an optional argument to set
+the queue:
 
 ```RUBY
 MyMailer.deliver_later(queue: 'amqp.myapplicat.mailer')
 ```
+
+But this gem hasn't been tested with Rails 4.2.0.beta2 yet.
 
 ### Running your ActiveJob based workers.
 
@@ -63,8 +74,47 @@ rake tread_mill:run
 
 **That's it.**
 
-### Example workers:
+### Example Upstart:
 
+As suggested by jondot, the Sneakers maintainer, daemons used to run jobs with
+Sneakers, and thusly TreadMill, should be done so using Upstart, or any other
+of the many management subsystems.  Sneakers no longer supports the ability to
+daemonize.
+
+The following a sample upstart config file to get you started:
+
+```
+description 'Application Tread Mill Server'
+
+env ENVIRONMENT_VAR='VALUE'
+
+setuid deploy
+setgid www-data
+
+chdir /srv/www/application/current
+
+start on [2345]
+stop on [!2345]
+
+exec /usr/local/bin/ruby /usr/local/bin/bundle exec rake tread_mill:run
+```
+
+This file will go in `/etc/init` on Ubuntu systems.  Should be named with the 
+service name followed by `.conf`: `application-treadmill.conf`.
+
+Now to start/stop your service:
+
+```BASH
+root@nix:/root# start application-treadmill
+application-treadmill start/running, process 27996
+...
+root@nix:/root# stop application-treadmill
+application-treadmill stop/waiting
+```
+
+More information on Upstart can be found [here](http://upstart.ubuntu.com/cookbook/#console).
+
+### Example workers:
 
 Assuming you are using the ActiveJob::Base worker class:
 
@@ -103,7 +153,14 @@ end
 
 ### Support Versions
 
-#### Rail 4.2
+#### Rails 4.2.0.beta2
+
+I haven't had a chance to test out TreadMill with Rails 4.2.0.beta2.  It may or
+may not work as is.  If there are any issues, feel free to take a stab and
+submit a PR.  The likely culprit will be in [the QueueListener class](/Protobit/tread_mill/blob/master/lib/tread_mill/queue_listener.rb)
+since it is the shim between `Sneakers` and `ActiveJob`.
+
+#### Rails 4.2.0.beta1
 
 TreadMill should work out of the box with a valid Sneakers configuration. For ActionMailer::DeliverLater integration, all you need to do is include a `:mailer` queue, which should be prefixed by your selected `queue_name_prefix` (`config.tread_mill.queues = %(amqp.myapplication.mailers)`).
 

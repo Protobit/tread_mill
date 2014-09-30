@@ -10,7 +10,7 @@ require 'tread_mill/queue_listener'
 module TreadMill
   include ActiveSupport::Configurable
 
-  config_accessor :queues, :workers, :pid_path
+  config_accessor :queues, :workers
 
   # Check to see if we're properly configured to send messages.
   def self.configured?
@@ -49,7 +49,6 @@ module TreadMill
 
     # Let these primarily reside in the sneakers config unless explicitly set.
     sneakers_config[:workers] = workers if workers
-    sneakers_config[:pid_path] = pid_path if pid_path
 
     Sneakers.configure(sneakers_config.merge(options))
 
