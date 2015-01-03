@@ -13,6 +13,9 @@ module TreadMill
   config_accessor :queues, :workers
 
   # Check to see if we're properly configured to send messages.
+  # Unfortunately, sneakers/bunny doesn't have a real method check because
+  # the connections are setup at request time.  This is really just a best
+  # guess.
   def self.configured?
     Sneakers.configured? &&
       !Sneakers::Config[:amqp]
