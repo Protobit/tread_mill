@@ -2,18 +2,20 @@
 
 TreadMill Rails plugin for background workers.  This gem is designed to integrate into an existing Rails application and provide immediate RabbitMQ integration using the Sneakers worker gem and Rails 4.2.0.beta1 ActiveJob.
 
-**As of this writing, this gem has not been published, but it can be accessed via bundler using git.**
+## Notes
 
-**Use the [0.0.1](/Protobit/tread_mill/wiki/0.0.1) tag for Rails 4.1  and `0.0.2` tag for Rails 4.2.0.beta1**
+Tags:
 
-**Untested with 4.2.0.beta2; please create an issue if you see any!**
+* [0.0.1](/Protobit/tread_mill/wiki/0.0.1) tag for Rails 4.1
+* [0.0.2](/Protobit/tread_mill/wiki/0.0.1) tag for Rails 4.2.0.beta1
+* HEAD or 0.0.3 tag for Rails 4.2 stable
 
 ## Installation
 
 Add this line to your applications's Gemfile:
 
 ```
-gem 'tread_mill', git: 'https://github.com/Protobit/tread_mill', tag: '0.0.2'
+gem 'tread_mill'
 ```
 
 And then execute:
@@ -30,41 +32,22 @@ bundle install
 module MyApp
   class Application < Rails::Application
     # Queues you wish to listen on.
-    config.tread_mill.queues = %w(amqp.myapplication.my_queue amqp.myapplication.my_second_queue)
+    config.active_job.queue_name_delimiter = '.'
     config.active_job.queue_adapter = :sneakers
+    config.active_job.queue_base_name = 'amqp.myapplication'
 
-    # Configure 'ActionMailer#deliver_later'
-    config.tread_mill.queues << 'amqp.myapplication.mailers'
+    # configure queues: amqp.myapplication.my_queue and amqp.myapplication.my_second_queue
+    config.tread_mill.queues = %w(my_queue my_second_queue)
+
+    # Configure 'ActionMailer#deliver_later': amqp.myapplication.mailers
+    config.tread_mill.queues << 'mailers'
 
     # Optional: Probably best set in your sneakers configuration.
     # config.tread_mill.workers = # of workers
 
-    config.active_job.queue_base_name = 'amqp.myapplication'
   end
 end
 ```
-
-**Note: I've submitted a PR to the Rails team to make the prefix configurable.  [Rails PR #17039 for more details.](See https://github.com/rails/rails/pull/17039)**
-
-`ActiveJob::Base#queue_name_prefix` is prepended with an underscore ('_') for
-whatever reason. If, like our dev team, you use the AMQP style queue names
-separated by '.' then set the `app.config.queue_name_prefix` to `nil` and use
-the full queue name in `ActiveJob::Base#queue_as(queue)`.
-
-Alternately, use `self.queue_name = 'full.queue.name'`, but this won't work in
-Rails 4.2.0.beta2, which has some pretty hefty re-writes to the ActiveJob API.
-
-Additionally, for `ActionMailer::DeliverLater`, this is unsupported in Rails
-4.2.0.beta1.
-
-If using Rails 4.2.0.beta2, you can try to pass in an optional argument to set
-the queue:
-
-```RUBY
-MyMailer.deliver_later(queue: 'amqp.myapplicat.mailer')
-```
-
-But this gem hasn't been tested with Rails 4.2.0.beta2 yet.
 
 ### Running your ActiveJob based workers.
 
@@ -77,9 +60,9 @@ rake tread_mill:run
 ### Example Upstart:
 
 As suggested by jondot, the Sneakers maintainer, daemons used to run jobs with
-Sneakers, and thusly TreadMill, should be done so using Upstart, or any other
-of the many management subsystems.  Sneakers no longer supports the ability to
-daemonize.
+Sneakers, and thusly TreadMill, should be done so using Upstart (or whatever
+flavor other of daemon management subsystems your chosen OS uses).  Sneakers
+no longer supports the ability to daemonize.
 
 The following a sample upstart config file to get you started:
 
@@ -114,6 +97,10 @@ application-treadmill stop/waiting
 
 More information on Upstart can be found [here](http://upstart.ubuntu.com/cookbook/#console).
 
+**NOTE: Upstart `restart` is not the command you are looking for *waves 2
+fingers from left to right in front of you*.  You must stop/start between
+configuration changes for the changes to take effect.**
+
 ### Example workers:
 
 Assuming you are using the ActiveJob::Base worker class:
@@ -121,11 +108,10 @@ Assuming you are using the ActiveJob::Base worker class:
 ```Ruby
 # app/workers/my_worker.rb
 
-class Workers::MyWorker < ActiveJob::Base
-  queue_as :my_queue # queue used will be 'amqp.myapplication_my_queue'
+# Assuming: config.active_job.queue_name_delimiter = '.'
 
-  # If you use decimals or some other non-underscore join:
-  # queue_as 'amqp.myapplication.my_queue'
+class Workers::MyWorker < ActiveJob::Base
+  queue_as :my_queue # queue used will be 'amqp.myapplication.my_queue'
 
   def perform(user)
     user.do_work
@@ -153,12 +139,9 @@ end
 
 ### Support Versions
 
-#### Rails 4.2.0.beta2
+#### Rails 4.2.0
 
-I haven't had a chance to test out TreadMill with Rails 4.2.0.beta2.  It may or
-may not work as is.  If there are any issues, feel free to take a stab and
-submit a PR.  The likely culprit will be in [the QueueListener class](/Protobit/tread_mill/blob/master/lib/tread_mill/queue_listener.rb)
-since it is the shim between `Sneakers` and `ActiveJob`.
+Should be working now.  If you see any issues, feel free to submit a Pull Request.
 
 #### Rails 4.2.0.beta1
 
