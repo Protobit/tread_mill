@@ -25,3 +25,5 @@ config/secrets.yml
 
 test/dummy/log/test.log
 test/dummy/db/test.sqlite3
+
+pkg/**
